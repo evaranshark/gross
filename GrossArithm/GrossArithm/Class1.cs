@@ -113,13 +113,17 @@ namespace GrossArithmetik
             return result;
         }
     }
-    public class Gross: List<GrossNode>
+    public class Gross: List<GrossNode>, IEquatable<Gross>
     {
         private char g = '\u2460'; // Char "grossone"
         private static readonly double TOLERANCE = 1e-15;
+        public Gross()
+        {
+          ((List<GrossNode>)this).Add(0);
+        }
         public new void Add(GrossNode arg)
         {
-
+            Remove(0);
             if (Exists(m => m.Power == arg.Power))
             {
                 this[FindIndex(m => m.Power == arg.Power)] += arg;
@@ -127,17 +131,18 @@ namespace GrossArithmetik
             else
             {
                 ((List<GrossNode>)this).Add(arg);
-                this.Sort();
-                this.Reverse();
+                Sort();
+                Reverse();
             }
+
         }
         public static Gross operator +(Gross A, Gross B)
         {
             Gross result = new Gross();
             if (A == null || B == null)
                 throw new ArgumentNullException();
-            if (A.Count == 0) return B;
-            if (B.Count == 0) return A;
+            //if (A.Count == 0) return B;
+            //if (B.Count == 0) return A;
             int i = 0, j = 0;
             while (i < A.Count || j < B.Count)
             {
@@ -162,15 +167,23 @@ namespace GrossArithmetik
                 }
                 else if (i == A.Count)
                 {
-                    result.Add(B[j]);
-                    //result.AddRange(B.SkipWhile(x => x == B[j]));
-                    j++;
-                    //return result;
+                    //result.Add(B[j]);
+                    result.AddRange(B.SkipWhile(x => x != B[j]));
+                    //j++;
+                    result.Clear();
+                    result.Sort();
+                    result.Reverse();
+                    return result;
                 }
                 else if (j == B.Count)
                 {
-                    result.Add(A[i]);
-                    i++;
+                    /*result.Add(A[i]);
+                    i++;*/
+                    result.AddRange(A.SkipWhile(x => x != A[i]));
+                    result.Clear();
+                    result.Sort();
+                    result.Reverse();
+                    return result;
                 }
             }
             result.Clear();
@@ -208,8 +221,11 @@ namespace GrossArithmetik
                 }
                 else if (j == B.Count)
                 {
-                    result.Add(A[i]);
-                    i++;
+                  result.AddRange(A.SkipWhile(x => x != A[i]));
+                  result.Clear();
+                  result.Sort();
+                  result.Reverse();
+                  return result;
                 }
             }
             result.Clear();
@@ -233,10 +249,12 @@ namespace GrossArithmetik
             {
                 akk = new Gross() { residue[0] / B[0] };
                 result.Add(akk[0]);
+                if ((akk * B).Equals(0)) break;
                 residue = residue - akk * B;
             }
 
             result.Clear();
+
             return result;
         }
         public static implicit operator Gross(double val)
@@ -249,8 +267,6 @@ namespace GrossArithmetik
         {
             if (this == null)
                 throw new ArgumentNullException("Gross is not initialized.");
-            if (Count == 0)
-                return "0";
             String result = "";
             foreach (var a in this)
             {
@@ -261,9 +277,21 @@ namespace GrossArithmetik
         }
         public new void Clear()
         {
-            RemoveAll(m => Math.Abs(m.Coef - 0.0) < TOLERANCE);
-           // if (Count == 0)
-               // Add(0);
+            RemoveAll(m => Math.Abs(m.Coef) < TOLERANCE);
+            if (Count == 0)
+                Add(0);
+        }
+
+        public bool Equals(Gross other)
+        {
+            if (other == null) return false;
+            if (Count != other.Count)
+                return false;
+            for (int i = 0; i < Count; i++)
+            {
+                if (!(this[i].Equals(other[i]))) return false;
+            }
+            return true;
         }
     }
     public static class StringExt
@@ -278,9 +306,11 @@ namespace GrossArithmetik
 
                 result.Add(new GrossNode(Convert.ToDouble(item.Split('g')[0].ToString()), Convert.ToInt32(item.Split('g')[1].ToString())));
             }
+            result.Clear();
+            result.Sort();
+            result.Reverse();
             //result = result.OrderByDescending(x => x.Power) as Gross;
             return result;
         }
     }
 }
-
