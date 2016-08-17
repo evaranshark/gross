@@ -1,0 +1,7 @@
+Here is a C# library, that realizes gross arithmetic.
+You can find more about subject in works of Yaroslav D. Sergeyev like here:
+http://wwwinfo.deis.unical.it/~yaro/arithmetic.html
+
+================================
+At this time only basic features (e.g. operators) are implemented.
+This code is being updated when I able to do it :P
